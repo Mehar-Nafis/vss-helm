@@ -85,6 +85,7 @@ nodeSelector block – targets GPU nodes by product label based on gpuType.
   gpuType=l40s  → nvidia.com/gpu.product: NVIDIA-L40S  (wn1 or wn2)
   gpuType=rtx   → nvidia.com/gpu.product: NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition (c845)
 
+If nodeSelector.forcedNode is set, it pins all pods to a specific host.
 For l40s: pods may land on wn1 or wn2. local-fs WaitForFirstConsumer
 ensures all pods sharing a PVC are automatically co-located on the same node.
 
@@ -92,7 +93,12 @@ Usage: {{- include "vss.nodeSelector" . | nindent 6 }}
 */}}
 {{- define "vss.nodeSelector" -}}
 {{- if .Values.nodeSelector.enabled }}
-  {{- if eq .Values.gpuType "l40s" }}
+  {{- if .Values.nodeSelector.forcedNode }}
+nodeSelector:
+  kubernetes.io/hostname: {{ .Values.nodeSelector.forcedNode }}
+  node-role.kubernetes.io/worker: ""
+  node.openshift.io/os_id: rhel
+  {{- else if eq .Values.gpuType "l40s" }}
 nodeSelector:
   nvidia.com/gpu.product: NVIDIA-L40S
   node-role.kubernetes.io/worker: ""
