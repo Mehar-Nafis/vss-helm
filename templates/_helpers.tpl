@@ -99,6 +99,30 @@ seccompProfile:
 {{- end }}
 
 {{/*
+Relaxed pod security context for vendor images (e.g. storage-ms, via-server)
+that embed files owned by a specific UID and cannot run as an arbitrary UID.
+Requires the service account to be bound to 'anyuid' SCC:
+  oc adm policy add-scc-to-user anyuid -z vss-sa -n <namespace>
+*/}}
+{{- define "vss.anyuidPodSecurityContext" }}
+securityContext:
+  runAsUser: 0
+  fsGroup: 0
+  seccompProfile:
+    type: RuntimeDefault
+{{- end }}
+
+{{- define "vss.anyuidContainerSecurityContext" }}
+allowPrivilegeEscalation: false
+capabilities:
+  drop:
+    - ALL
+runAsUser: 0
+seccompProfile:
+  type: RuntimeDefault
+{{- end }}
+
+{{/*
 nodeSelector block – targets GPU nodes by product label based on gpuType.
 
   gpuType=l40s  → nvidia.com/gpu.product: NVIDIA-L40S  (wn1 or wn2)

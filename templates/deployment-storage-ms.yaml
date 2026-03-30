@@ -23,27 +23,21 @@ spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
       {{- include "vss.nodeSelector" . | nindent 6 }}
       {{- include "vss.primaryAffinity" . | nindent 6 }}
-      {{- include "vss.podSecurityContext" . | nindent 6 }}
+      {{- include "vss.anyuidPodSecurityContext" . | nindent 6 }}
       containers:
         - name: storage-ms
           securityContext:
-            {{- include "vss.containerSecurityContext" . | nindent 12 }}
+            {{- include "vss.anyuidContainerSecurityContext" . | nindent 12 }}
           image: {{ .Values.storageMs.image }}
           imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
             - -c
-            - |
-              if [ "$VST_INSTALL_ADDITIONAL_PACKAGES" = "true" ]; then
-                /home/vst/vst_release/tools/user_additional_install.sh
-              fi
-              exec /home/vst/vst_release/launch_vst
+            - exec /home/vst/vst_release/launch_vst
           ports:
             - containerPort: {{ .Values.storageMs.httpPort }}
               name: http
           env:
-            - name: VST_INSTALL_ADDITIONAL_PACKAGES
-              value: {{ .Values.storageMs.installAdditionalPackages | quote }}
             - name: CONTAINER_NAME
               value: "storage-ms"
             - name: NVIDIA_VISIBLE_DEVICES
