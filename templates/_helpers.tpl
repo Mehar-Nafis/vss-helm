@@ -80,18 +80,22 @@ Usage: {{ include "vss.routeHost" (dict "root" . "prefix" "api-gateway") }}
 {{- end }}
 
 {{/*
-nodeSelector block – pins all pods to the targetNode worker so RWO local-fs
-PVCs (node-local) can be shared across pods on that node.
+nodeSelector block – targets GPU nodes by product label based on gpuType.
 
-Pass at install time:
-  --set targetNode=wn1.apjcaipod.dcloud.cisco.com   (L40S)
-  --set targetNode=c845.apjcaipod.dcloud.cisco.com  (RTX)
+  gpuType=l40s  → nvidia.com/gpu.product: NVIDIA-L40S  (wn1 or wn2)
+  gpuType=rtx   → nvidia.com/gpu.product: NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition (c845)
+
+For l40s: pods may land on wn1 or wn2. local-fs WaitForFirstConsumer
+ensures all pods sharing a PVC are automatically co-located on the same node.
 
 Usage: {{- include "vss.nodeSelector" . | nindent 6 }}
 */}}
 {{- define "vss.nodeSelector" -}}
-{{- if .Values.targetNode }}
+{{- if eq .Values.gpuType "l40s" }}
 nodeSelector:
-  kubernetes.io/hostname: {{ .Values.targetNode }}
+  nvidia.com/gpu.product: NVIDIA-L40S
+{{- else if eq .Values.gpuType "rtx" }}
+nodeSelector:
+  nvidia.com/gpu.product: NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition
 {{- end }}
 {{- end }}

@@ -18,20 +18,19 @@ global:
   openshift: true
 
 # -----------------------------------------------------------------------------
-# targetNode – hostname of the worker node to pin ALL pods to.
+# gpuType – selects which GPU nodes to target.
 #
-# Required with local-fs storage (RWO): all pods must land on the same node
-# so they can share node-local PVCs.
+# Allowed values:
+#   l40s  → targets wn1 and wn2 (NVIDIA L40S, 2 GPUs each)
+#            pods may land on either node; local-fs WaitForFirstConsumer
+#            ensures all pods sharing a PVC co-locate on the same node.
+#   rtx   → targets c845 (NVIDIA RTX PRO 6000 Blackwell, 6 GPUs)
 #
 # Pass at install time:
-#   L40S:  --set targetNode=wn1.apjcaipod.dcloud.cisco.com
-#          --set targetNode=wn2.apjcaipod.dcloud.cisco.com
-#   RTX:   --set targetNode=c845.apjcaipod.dcloud.cisco.com
-#
-# Find available nodes:
-#   oc get nodes -l nvidia.com/gpu.present=true -o custom-columns=NAME:.metadata.name,GPU:.metadata.labels."nvidia\.com/gpu\.product"
+#   --set gpuType=l40s
+#   --set gpuType=rtx
 # -----------------------------------------------------------------------------
-targetNode: ""
+gpuType: "l40s"
 
 # -----------------------------------------------------------------------------
 # Service Account – shared by all GPU / privileged pods
@@ -200,6 +199,8 @@ cvUi:
 # -----------------------------------------------------------------------------
 nimLlm:
   image: nvcr.io/nim/nvidia/llama-3.3-nemotron-super-49b-v1.5:1.14.0
+  # Directory inside container for model cache (volumeMount mountPath)
+  modelDirectory: /models
   # Internal container port
   containerPort: 8000
   # Service port exposed to other pods (mirrors docker-compose host port 8999)
@@ -239,26 +240,27 @@ manufacturingQa:
 # storage class – e.g. ODF/CephFS, NFS, or any RWX-capable provisioner.
 # -----------------------------------------------------------------------------
 persistence:
-  # Default storage class for all PVCs (empty = cluster default)
-  storageClass: ""
+  # Default storage class for all PVCs
+  storageClass: "local-fs"
 
   # Shared /tmp between via-server, storage-ms, alert-bridge,
-  # alert-inspector-ui, nv-cv-event-detector, cv-ui
+  # alert-inspector-ui, nv-cv-event-detector, cv-ui.
+  # RWO works because all pods are pinned to the same node via targetNode.
   vssSharedMedia:
     size: 100Gi
-    accessMode: ReadWriteMany
-    storageClass: ""   # Must be RWX-capable (e.g. ocs-storagecluster-cephfs)
+    accessMode: ReadWriteOnce
+    storageClass: ""
 
   # NGC model cache shared by via-server and nv-cv-event-detector
   viaNgcModelCache:
     size: 50Gi
-    accessMode: ReadWriteMany
+    accessMode: ReadWriteOnce
     storageClass: ""
 
   # HuggingFace model cache shared by via-server and nv-cv-event-detector
   viaHfCache:
     size: 50Gi
-    accessMode: ReadWriteMany
+    accessMode: ReadWriteOnce
     storageClass: ""
 
   # Redis AOF persistence
@@ -291,7 +293,7 @@ persistence:
 # Leave empty to let OpenShift auto-assign hostnames.
 # -----------------------------------------------------------------------------
 route:
-  baseDomain: ""  # e.g. apps.cluster.example.com
+  baseDomain: "apps.apjcaipod.dcloud.cisco.com"
   tls:
     enabled: true
     termination: edge
