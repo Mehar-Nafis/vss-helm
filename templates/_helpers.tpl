@@ -163,17 +163,14 @@ affinity:
 nodeSelector:
   kubernetes.io/hostname: {{ .Values.nodeSelector.forcedNode }}
   node-role.kubernetes.io/worker: ""
-  node.openshift.io/os_id: rhel
   {{- else if eq .Values.gpuType "l40s" }}
 nodeSelector:
   nvidia.com/gpu.product: NVIDIA-L40S
   node-role.kubernetes.io/worker: ""
-  node.openshift.io/os_id: rhel
   {{- else if eq .Values.gpuType "rtx" }}
 nodeSelector:
   nvidia.com/gpu.product: NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition
   node-role.kubernetes.io/worker: ""
-  node.openshift.io/os_id: rhel
   {{- end }}
 {{- end }}
 {{- end }}
