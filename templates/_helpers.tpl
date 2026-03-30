@@ -91,11 +91,17 @@ ensures all pods sharing a PVC are automatically co-located on the same node.
 Usage: {{- include "vss.nodeSelector" . | nindent 6 }}
 */}}
 {{- define "vss.nodeSelector" -}}
-{{- if eq .Values.gpuType "l40s" }}
+{{- if .Values.nodeSelector.enabled }}
+  {{- if eq .Values.gpuType "l40s" }}
 nodeSelector:
   nvidia.com/gpu.product: NVIDIA-L40S
-{{- else if eq .Values.gpuType "rtx" }}
+  node-role.kubernetes.io/worker: ""
+  node.openshift.io/os_id: rhel
+  {{- else if eq .Values.gpuType "rtx" }}
 nodeSelector:
   nvidia.com/gpu.product: NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition
+  node-role.kubernetes.io/worker: ""
+  node.openshift.io/os_id: rhel
+  {{- end }}
 {{- end }}
 {{- end }}
