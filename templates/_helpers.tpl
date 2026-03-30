@@ -79,7 +79,7 @@ Usage: {{ include "vss.routeHost" (dict "root" . "prefix" "api-gateway") }}
 {{- end }}
 {{- end }}
 
-{{- define "vss.podSecurityContext" -}}
+{{- define "vss.podSecurityContext" }}
 securityContext:
   runAsNonRoot: true
   runAsUser: 1000
@@ -89,7 +89,7 @@ securityContext:
     type: RuntimeDefault
 {{- end }}
 
-{{- define "vss.containerSecurityContext" -}}
+{{- define "vss.containerSecurityContext" }}
 allowPrivilegeEscalation: false
 capabilities:
   drop:
