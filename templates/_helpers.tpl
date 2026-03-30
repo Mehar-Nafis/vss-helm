@@ -110,6 +110,30 @@ ensures all pods sharing a PVC are automatically co-located on the same node.
 
 Usage: {{- include "vss.nodeSelector" . | nindent 6 }}
 */}}
+{{/*
+Anti-affinity for secondary pods (redis, nim-llm).
+Pushes them to whichever L40S node the primary workload did NOT land on,
+so the 5 primary PVCs consume one node's PVs and the 2 secondary PVCs
+consume the other node's PVs.
+Disabled when forcedNode is set (all pods pinned to one node anyway).
+*/}}
+{{- define "vss.secondaryAffinity" -}}
+{{- if and .Values.nodeSelector.enabled (not .Values.nodeSelector.forcedNode) }}
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/component
+              operator: In
+              values:
+                - via-server
+                - storage-ms
+                - nv-cv-event-detector
+        topologyKey: kubernetes.io/hostname
+{{- end }}
+{{- end }}
+
 {{- define "vss.nodeSelector" -}}
 {{- if .Values.nodeSelector.enabled }}
   {{- if .Values.nodeSelector.forcedNode }}
