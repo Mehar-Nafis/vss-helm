@@ -82,6 +82,7 @@ Usage: {{ include "vss.routeHost" (dict "root" . "prefix" "api-gateway") }}
 {{- define "vss.podSecurityContext" }}
 securityContext:
   runAsNonRoot: true
+  # runAsUser/runAsGroup/fsGroup removed for OpenShift SCC range compatibility
   seccompProfile:
     type: RuntimeDefault
 {{- end }}
@@ -92,6 +93,7 @@ capabilities:
   drop:
     - ALL
 runAsNonRoot: true
+# runAsUser removed to avoid SCC UID range mismatch (OpenShift assigned UID)
 seccompProfile:
   type: RuntimeDefault
 {{- end }}
