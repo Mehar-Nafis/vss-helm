@@ -82,9 +82,6 @@ Usage: {{ include "vss.routeHost" (dict "root" . "prefix" "api-gateway") }}
 {{- define "vss.podSecurityContext" }}
 securityContext:
   runAsNonRoot: true
-  runAsUser: 1000
-  runAsGroup: 1000
-  fsGroup: 1000
   seccompProfile:
     type: RuntimeDefault
 {{- end }}
@@ -95,7 +92,6 @@ capabilities:
   drop:
     - ALL
 runAsNonRoot: true
-runAsUser: 1000
 seccompProfile:
   type: RuntimeDefault
 {{- end }}

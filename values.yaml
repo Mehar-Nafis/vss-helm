@@ -30,8 +30,7 @@ global:
 #   --set gpuType=l40s
 #   --set gpuType=rtx
 # -----------------------------------------------------------------------------
-nodeSelector:
-  enabled: true
+
 
 gpuType: "l40s"
 
