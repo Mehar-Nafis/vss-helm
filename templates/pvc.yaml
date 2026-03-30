@@ -2,9 +2,13 @@
 {{- $globalSC := .Values.persistence.storageClass }}
 
 # ---------------------------------------------------------------------------
-# vss-shared-media  (ReadWriteMany – shared /tmp across all GPU services)
-# Requires a storage class that supports RWX (e.g. ODF CephFS, NFS).
+# Shared PVCs — mounted by multiple pods, cannot be volumeClaimTemplates.
+# Exclusive PVCs (redis-data, nim-model-cache, vst-data, vst-video) are
+# managed by volumeClaimTemplates in their respective StatefulSets.
 # ---------------------------------------------------------------------------
+
+# vss-shared-media: shared /tmp across via-server, storage-ms, alert-bridge,
+# alert-inspector-ui, nv-cv-event-detector, cv-ui
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -22,9 +26,7 @@ spec:
   storageClassName: {{ . | quote }}
   {{- end }}
 ---
-# ---------------------------------------------------------------------------
-# via-ngc-model-cache  (ReadWriteMany – NGC model weights for via-server + cv-detector)
-# ---------------------------------------------------------------------------
+# via-ngc-model-cache: NGC model weights shared by via-server + nv-cv-event-detector
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -42,9 +44,7 @@ spec:
   storageClassName: {{ . | quote }}
   {{- end }}
 ---
-# ---------------------------------------------------------------------------
-# via-hf-cache  (ReadWriteMany – HuggingFace cache for via-server + cv-detector)
-# ---------------------------------------------------------------------------
+# via-hf-cache: HuggingFace cache shared by via-server + nv-cv-event-detector
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -59,85 +59,5 @@ spec:
     requests:
       storage: {{ .Values.persistence.viaHfCache.size }}
   {{- with (.Values.persistence.viaHfCache.storageClass | default $globalSC) }}
-  storageClassName: {{ . | quote }}
-  {{- end }}
----
-# ---------------------------------------------------------------------------
-# redis-data  (ReadWriteOnce)
-# ---------------------------------------------------------------------------
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ $fullname }}-redis-data
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "vss.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - {{ .Values.persistence.redisData.accessMode }}
-  resources:
-    requests:
-      storage: {{ .Values.persistence.redisData.size }}
-  {{- with (.Values.persistence.redisData.storageClass | default $globalSC) }}
-  storageClassName: {{ . | quote }}
-  {{- end }}
----
-# ---------------------------------------------------------------------------
-# vst-data  (ReadWriteOnce – VST database and logs)
-# ---------------------------------------------------------------------------
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ $fullname }}-vst-data
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "vss.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - {{ .Values.persistence.vstData.accessMode }}
-  resources:
-    requests:
-      storage: {{ .Values.persistence.vstData.size }}
-  {{- with (.Values.persistence.vstData.storageClass | default $globalSC) }}
-  storageClassName: {{ . | quote }}
-  {{- end }}
----
-# ---------------------------------------------------------------------------
-# vst-video  (ReadWriteOnce – VST video recordings)
-# ---------------------------------------------------------------------------
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ $fullname }}-vst-video
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "vss.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - {{ .Values.persistence.vstVideo.accessMode }}
-  resources:
-    requests:
-      storage: {{ .Values.persistence.vstVideo.size }}
-  {{- with (.Values.persistence.vstVideo.storageClass | default $globalSC) }}
-  storageClassName: {{ . | quote }}
-  {{- end }}
----
-# ---------------------------------------------------------------------------
-# nim-model-cache  (ReadWriteOnce – NIM LLM downloaded model weights)
-# ---------------------------------------------------------------------------
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ $fullname }}-nim-model-cache
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "vss.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - {{ .Values.persistence.nimModelCache.accessMode }}
-  resources:
-    requests:
-      storage: {{ .Values.persistence.nimModelCache.size }}
-  {{- with (.Values.persistence.nimModelCache.storageClass | default $globalSC) }}
   storageClassName: {{ . | quote }}
   {{- end }}

@@ -1,7 +1,7 @@
 {{- $fullname := include "vss.fullname" . }}
 {{- $component := "redis" }}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ $fullname }}-{{ $component }}
   namespace: {{ .Release.Namespace }}
@@ -9,7 +9,9 @@ metadata:
     {{- include "vss.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ $component }}
 spec:
+  serviceName: {{ $fullname }}-{{ $component }}
   replicas: 1
+  podManagementPolicy: Parallel
   selector:
     matchLabels:
       {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 6 }}
@@ -50,7 +52,15 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 5
-      volumes:
-        - name: redis-data
-          persistentVolumeClaim:
-            claimName: {{ $fullname }}-redis-data
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+        labels:
+          {{- include "vss.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.redisData.accessMode }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.redisData.size }}
+        {{- include "vss.storageClass" (dict "global" .Values.persistence.storageClass "local" .Values.persistence.redisData.storageClass) | nindent 8 }}

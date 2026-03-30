@@ -1,7 +1,7 @@
 {{- $fullname := include "vss.fullname" . }}
 {{- $component := "storage-ms" }}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ $fullname }}-{{ $component }}
   namespace: {{ .Release.Namespace }}
@@ -9,7 +9,9 @@ metadata:
     {{- include "vss.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ $component }}
 spec:
+  serviceName: {{ $fullname }}-{{ $component }}
   replicas: 1
+  podManagementPolicy: Parallel
   selector:
     matchLabels:
       {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 6 }}
@@ -73,12 +75,29 @@ spec:
         - name: vst-configs
           configMap:
             name: {{ $fullname }}-vst-configs
-        - name: vst-data
-          persistentVolumeClaim:
-            claimName: {{ $fullname }}-vst-data
-        - name: vst-video
-          persistentVolumeClaim:
-            claimName: {{ $fullname }}-vst-video
         - name: shared-media
           persistentVolumeClaim:
             claimName: {{ $fullname }}-vss-shared-media
+  volumeClaimTemplates:
+    - metadata:
+        name: vst-data
+        labels:
+          {{- include "vss.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.vstData.accessMode }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.vstData.size }}
+        {{- include "vss.storageClass" (dict "global" .Values.persistence.storageClass "local" .Values.persistence.vstData.storageClass) | nindent 8 }}
+    - metadata:
+        name: vst-video
+        labels:
+          {{- include "vss.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.vstVideo.accessMode }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.vstVideo.size }}
+        {{- include "vss.storageClass" (dict "global" .Values.persistence.storageClass "local" .Values.persistence.vstVideo.storageClass) | nindent 8 }}
