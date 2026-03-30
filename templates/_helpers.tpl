@@ -78,3 +78,20 @@ Usage: {{ include "vss.routeHost" (dict "root" . "prefix" "api-gateway") }}
 {{- printf "%s-%s.%s" .root.Release.Name .prefix .root.Values.route.baseDomain }}
 {{- end }}
 {{- end }}
+
+{{/*
+nodeSelector block – pins all pods to the targetNode worker so RWO local-fs
+PVCs (node-local) can be shared across pods on that node.
+
+Pass at install time:
+  --set targetNode=wn1.apjcaipod.dcloud.cisco.com   (L40S)
+  --set targetNode=c845.apjcaipod.dcloud.cisco.com  (RTX)
+
+Usage: {{- include "vss.nodeSelector" . | nindent 6 }}
+*/}}
+{{- define "vss.nodeSelector" -}}
+{{- if .Values.targetNode }}
+nodeSelector:
+  kubernetes.io/hostname: {{ .Values.targetNode }}
+{{- end }}
+{{- end }}

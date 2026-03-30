@@ -18,6 +18,22 @@ global:
   openshift: true
 
 # -----------------------------------------------------------------------------
+# targetNode – hostname of the worker node to pin ALL pods to.
+#
+# Required with local-fs storage (RWO): all pods must land on the same node
+# so they can share node-local PVCs.
+#
+# Pass at install time:
+#   L40S:  --set targetNode=wn1.apjcaipod.dcloud.cisco.com
+#          --set targetNode=wn2.apjcaipod.dcloud.cisco.com
+#   RTX:   --set targetNode=c845.apjcaipod.dcloud.cisco.com
+#
+# Find available nodes:
+#   oc get nodes -l nvidia.com/gpu.present=true -o custom-columns=NAME:.metadata.name,GPU:.metadata.labels."nvidia\.com/gpu\.product"
+# -----------------------------------------------------------------------------
+targetNode: ""
+
+# -----------------------------------------------------------------------------
 # Service Account – shared by all GPU / privileged pods
 # OpenShift requires the SA to be bound to 'privileged' or 'anyuid' SCC.
 # Run after install:
