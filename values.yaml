@@ -1,0 +1,282 @@
+# =============================================================================
+# VSS Helm Chart – values.yaml
+# =============================================================================
+# All secrets (ngcApiKey, hfToken) MUST be set at deploy time, e.g.:
+#   helm install vss ./vss-helm \
+#     --set global.ngcApiKey=nvapi-xxx \
+#     --set global.hfToken=hf_xxx
+# =============================================================================
+
+global:
+  # NGC API key – required to pull NIM images and NGC model cache
+  ngcApiKey: ""
+  # HuggingFace token – required to download Cosmos-Reason2 from HF
+  hfToken: ""
+  # Default NVIDIA_VISIBLE_DEVICES for all GPU workloads (overridden per service)
+  nvidiaVisibleDevices: "all"
+  # Whether OpenShift is the target (enables Routes, SCC annotations)
+  openshift: true
+
+# -----------------------------------------------------------------------------
+# Service Account – shared by all GPU / privileged pods
+# OpenShift requires the SA to be bound to 'privileged' or 'anyuid' SCC.
+# Run after install:
+#   oc adm policy add-scc-to-user privileged -z <serviceAccount.name> -n <namespace>
+# -----------------------------------------------------------------------------
+serviceAccount:
+  create: true
+  name: vss-sa
+
+# -----------------------------------------------------------------------------
+# via-server  (VSS Engine / VLM)
+# Compose source: event_reviewer/compose.yaml → via-server
+# Exposes: VSS_ENGINE_URL used by manufacturing_qa/.env
+# -----------------------------------------------------------------------------
+viaServer:
+  image: nvcr.io/nvidia/blueprint/vss-engine:2.4.1
+  # backendPort drives VSS_ENGINE_URL in manufacturing_qa configmap
+  backendPort: 8076
+  frontendPort: 9000
+  # VLM model selection
+  modelPath: "git:https://huggingface.co/nvidia/Cosmos-Reason2-8B"
+  vlmModelToUse: "cosmos-reason2"
+  vllmGpuMemoryUtilization: ""
+  vlmMaxModelLen: ""
+  vlmInputWidth: ""
+  vlmInputHeight: ""
+  vlmDefaultNumFramesPerChunk: ""
+  vlmSystemPrompt: "You are a helpful assistant. Answer the user's question. "
+  vssLogLevel: ""
+  vssExtraArgs: ""
+  # Host IPC required by vLLM / NCCL
+  hostIPC: true
+  shmSize: 16Gi
+  resources:
+    limits:
+      nvidia.com/gpu: "1"
+      memory: "64Gi"
+    requests:
+      memory: "32Gi"
+      cpu: "4"
+
+# -----------------------------------------------------------------------------
+# storage-ms  (VST Storage Management Service)
+# Compose source: event_reviewer/compose.yaml → storage-ms
+# -----------------------------------------------------------------------------
+storageMs:
+  image: nvcr.io/nvidia/blueprint/vst-storage:2.1.0-25.11.1.1
+  httpPort: 30000
+  installAdditionalPackages: "true"
+  resources:
+    limits:
+      memory: "8Gi"
+    requests:
+      memory: "2Gi"
+      cpu: "1"
+
+# -----------------------------------------------------------------------------
+# redis  (Redis Stack – event bridge)
+# Compose source: event_reviewer/compose.yaml → redis
+# -----------------------------------------------------------------------------
+redis:
+  image: redis/redis-stack-server:7.2.0-v9
+  port: 6379
+  resources:
+    limits:
+      memory: "4Gi"
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+
+# -----------------------------------------------------------------------------
+# alert-bridge
+# Compose source: event_reviewer/compose.yaml → alert-bridge
+# -----------------------------------------------------------------------------
+alertBridge:
+  image: nvcr.io/nvidia/blueprint/alert-bridge:0.19.0-multiarch
+  fastapiPort: 9080
+  healthPort: 9081
+  resources:
+    limits:
+      memory: "4Gi"
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+
+# -----------------------------------------------------------------------------
+# alert-inspector-ui  (Gradio alert review UI)
+# Compose source: event_reviewer/compose.yaml → alert-inspector-ui
+# -----------------------------------------------------------------------------
+alertInspectorUi:
+  image: nvcr.io/nvidia/blueprint/vss-alert-inspector-ui:2.4.1
+  gradioPort: 7860
+  backendPort: 8500
+  resources:
+    limits:
+      memory: "4Gi"
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+
+# -----------------------------------------------------------------------------
+# api-gateway  (nginx reverse proxy)
+# Compose source: event_reviewer/compose.yaml → api-gateway
+# Proxies: /api/vss/, /api/storage/, /api/alertbridge/, /alertinspector/
+# -----------------------------------------------------------------------------
+apiGateway:
+  image: nginx:alpine
+  port: 8080
+  resources:
+    limits:
+      memory: "512Mi"
+    requests:
+      memory: "128Mi"
+      cpu: "200m"
+
+# -----------------------------------------------------------------------------
+# nv-cv-event-detector  (DeepStream CV pipeline)
+# Compose source: cv-event-detector/compose.yaml → nv-cv-event-detector
+# Exposes: CV_DETECTOR_API_URL used by manufacturing_qa/.env
+# -----------------------------------------------------------------------------
+cvEventDetector:
+  image: nvcr.io/nvidia/blueprint/nv-cv-event-detector:2.4.0
+  apiPort: 23491
+  useGdino: "true"
+  disableSomOverlay: "false"
+  useTrackerConfig: "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_NvDCF_perf.yml"
+  clipCachePreEvTime: "5"
+  clipCachePostEvTime: "20"
+  enableFileStreamingMode: "false"
+  # hostIPC required by DeepStream / GStreamer
+  hostIPC: true
+  shmSize: 16Gi
+  resources:
+    limits:
+      nvidia.com/gpu: "1"
+      memory: "32Gi"
+    requests:
+      memory: "16Gi"
+      cpu: "4"
+
+# -----------------------------------------------------------------------------
+# cv-ui  (Gradio CV event detector UI)
+# Compose source: cv-event-detector/compose.yaml → cv-ui
+# -----------------------------------------------------------------------------
+cvUi:
+  image: nvcr.io/nvidia/blueprint/nv-cv-event-detector-ui:2.4.1
+  port: 7862
+  vlmModel: "cosmos-reason2"
+  enableVst: "true"
+  enableAlertBridge: "true"
+  serializeAlertVerification: "false"
+  resources:
+    limits:
+      memory: "4Gi"
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+
+# -----------------------------------------------------------------------------
+# nim-llm  (NIM – Llama-3.3-Nemotron-Super-49B)
+# Inline spec provided by user
+# Exposes: LLM_API_URL used by manufacturing_qa/.env
+# Port 8000 internal → 8999 on the K8s Service (matching compose mapping)
+# -----------------------------------------------------------------------------
+nimLlm:
+  image: nvcr.io/nim/nvidia/llama-3.3-nemotron-super-49b-v1.5:1.14.0
+  # Internal container port
+  containerPort: 8000
+  # Service port exposed to other pods (mirrors docker-compose host port 8999)
+  servicePort: 8999
+  # GPU device index to pin (mirrors LLM_MS_GPU_ID in compose)
+  gpuDeviceId: "1"
+  # User ID to run as (mirrors USERID in compose)
+  userId: "1000"
+  shmSize: 16Gi
+  resources:
+    limits:
+      nvidia.com/gpu: "1"
+      memory: "128Gi"
+    requests:
+      memory: "64Gi"
+      cpu: "8"
+
+# -----------------------------------------------------------------------------
+# manufacturing-qa ConfigMap
+# Values here populate the same variables as manufacturing_qa/.env
+# Endpoint URLs are auto-derived from service names; override only if needed.
+# -----------------------------------------------------------------------------
+manufacturingQa:
+  # Override auto-derived URLs only when services live outside this release
+  cvDetectorApiUrlOverride: ""   # default: http://<release>-nv-cv-event-detector:23491
+  llmApiUrlOverride: ""          # default: http://<release>-nim-llm:8999/v1/chat/completions
+  vssEngineUrlOverride: ""       # default: http://<release>-via-server:<backendPort>
+  mediaBaseDir: "/tmp"
+  appStorageBaseDir: "./storage"
+  sampleVideosDir: "./videos"
+  appPort: "7865"
+  debug: "True"
+
+# -----------------------------------------------------------------------------
+# Persistent Volume Claims
+# vssSharedMedia, viaNgcModelCache, viaHfCache must use ReadWriteMany (RWX)
+# storage class – e.g. ODF/CephFS, NFS, or any RWX-capable provisioner.
+# -----------------------------------------------------------------------------
+persistence:
+  # Default storage class for all PVCs (empty = cluster default)
+  storageClass: ""
+
+  # Shared /tmp between via-server, storage-ms, alert-bridge,
+  # alert-inspector-ui, nv-cv-event-detector, cv-ui
+  vssSharedMedia:
+    size: 100Gi
+    accessMode: ReadWriteMany
+    storageClass: ""   # Must be RWX-capable (e.g. ocs-storagecluster-cephfs)
+
+  # NGC model cache shared by via-server and nv-cv-event-detector
+  viaNgcModelCache:
+    size: 50Gi
+    accessMode: ReadWriteMany
+    storageClass: ""
+
+  # HuggingFace model cache shared by via-server and nv-cv-event-detector
+  viaHfCache:
+    size: 50Gi
+    accessMode: ReadWriteMany
+    storageClass: ""
+
+  # Redis AOF persistence
+  redisData:
+    size: 10Gi
+    accessMode: ReadWriteOnce
+    storageClass: ""
+
+  # VST application data (DB, logs)
+  vstData:
+    size: 20Gi
+    accessMode: ReadWriteOnce
+    storageClass: ""
+
+  # VST video recordings
+  vstVideo:
+    size: 1Ti
+    accessMode: ReadWriteOnce
+    storageClass: ""
+
+  # NIM LLM model weights cache
+  nimModelCache:
+    size: 200Gi
+    accessMode: ReadWriteOnce
+    storageClass: ""
+
+# -----------------------------------------------------------------------------
+# OpenShift Routes
+# Set host to your cluster's apps domain, e.g. apps.cluster.example.com
+# Leave empty to let OpenShift auto-assign hostnames.
+# -----------------------------------------------------------------------------
+route:
+  baseDomain: ""  # e.g. apps.cluster.example.com
+  tls:
+    enabled: true
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

@@ -1,0 +1,107 @@
+{{- $fullname := include "vss.fullname" . }}
+{{- $component := "nv-cv-event-detector" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}-{{ $component }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vss.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "vss.serviceAccountName" . }}
+      hostIPC: {{ .Values.cvEventDetector.hostIPC }}
+      {{- if .Values.global.openshift }}
+      securityContext:
+        runAsUser: 0
+      {{- end }}
+      containers:
+        - name: nv-cv-event-detector
+          image: {{ .Values.cvEventDetector.image }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /opt/nvidia/nv-cv-event-detector/start_nv_cv_event_detector.sh
+          ports:
+            - containerPort: {{ .Values.cvEventDetector.apiPort }}
+              name: api
+          env:
+            - name: NV_CV_EVENT_DETECTOR_API_PORT
+              value: {{ .Values.cvEventDetector.apiPort | quote }}
+            - name: INSTALL_PROPRIETARY_CODECS
+              value: "true"
+            - name: USE_GDINO
+              value: {{ .Values.cvEventDetector.useGdino | quote }}
+            - name: DISABLE_SOM_OVERLAY
+              value: {{ .Values.cvEventDetector.disableSomOverlay | quote }}
+            - name: USE_TRACKER_CONFIG
+              value: {{ .Values.cvEventDetector.useTrackerConfig | quote }}
+            - name: CLIP_CACHE_PRE_EV_TIME
+              value: {{ .Values.cvEventDetector.clipCachePreEvTime | quote }}
+            - name: CLIP_CACHE_POST_EV_TIME
+              value: {{ .Values.cvEventDetector.clipCachePostEvTime | quote }}
+            - name: ENABLE_FILE_STREAMING_MODE
+              value: {{ .Values.cvEventDetector.enableFileStreamingMode | quote }}
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: {{ .Values.global.nvidiaVisibleDevices | quote }}
+            - name: LD_LIBRARY_PATH
+              value: "/opt/nvidia/deepstream/deepstream/lib:/opt/tritonserver/lib/"
+          resources:
+            {{- toYaml .Values.cvEventDetector.resources | nindent 12 }}
+          securityContext:
+            capabilities:
+              add:
+                - SYS_PTRACE
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
+            - name: ngc-model-cache
+              mountPath: /root/.via/ngc_model_cache
+            - name: hf-cache
+              mountPath: /tmp/huggingface
+            - name: shared-media
+              mountPath: /tmp
+            - name: gdinoconfig
+              mountPath: /opt/nvidia/nv-cv-event-detector/gdinoconfig_grpc.txt
+              subPath: gdinoconfig_grpc.txt
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.cvEventDetector.apiPort }}
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            timeoutSeconds: 20
+            failureThreshold: 50
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.cvEventDetector.apiPort }}
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            timeoutSeconds: 20
+            failureThreshold: 50
+      volumes:
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ .Values.cvEventDetector.shmSize }}
+        - name: ngc-model-cache
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-via-ngc-model-cache
+        - name: hf-cache
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-via-hf-cache
+        - name: shared-media
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-vss-shared-media
+        - name: gdinoconfig
+          configMap:
+            name: {{ $fullname }}-gdinoconfig

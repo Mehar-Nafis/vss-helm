@@ -1,0 +1,75 @@
+{{- $fullname := include "vss.fullname" . }}
+{{- $component := "nim-llm" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}-{{ $component }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vss.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "vss.serviceAccountName" . }}
+      {{- if .Values.global.openshift }}
+      securityContext:
+        runAsUser: {{ .Values.nimLlm.userId }}
+      {{- end }}
+      containers:
+        - name: nim-llm
+          image: {{ .Values.nimLlm.image }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.nimLlm.containerPort }}
+              name: http
+          env:
+            - name: NGC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $fullname }}-credentials
+                  key: NGC_API_KEY
+          resources:
+            {{- toYaml .Values.nimLlm.resources | nindent 12 }}
+          securityContext:
+            runAsUser: {{ .Values.nimLlm.userId }}
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
+            - name: nim-model-cache
+              mountPath: {{ .Values.nimLlm.modelDirectory }}
+          livenessProbe:
+            exec:
+              command:
+                - python3
+                - -c
+                - "import requests; requests.get('http://localhost:{{ .Values.nimLlm.containerPort }}/v1/health/ready')"
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            timeoutSeconds: 20
+            failureThreshold: 100
+          readinessProbe:
+            exec:
+              command:
+                - python3
+                - -c
+                - "import requests; requests.get('http://localhost:{{ .Values.nimLlm.containerPort }}/v1/health/ready')"
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            timeoutSeconds: 20
+            failureThreshold: 100
+      volumes:
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ .Values.nimLlm.shmSize }}
+        - name: nim-model-cache
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-nim-model-cache

@@ -1,0 +1,84 @@
+{{- $fullname := include "vss.fullname" . }}
+{{- $component := "storage-ms" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}-{{ $component }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vss.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "vss.serviceAccountName" . }}
+      {{- if .Values.global.openshift }}
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      {{- end }}
+      containers:
+        - name: storage-ms
+          image: {{ .Values.storageMs.image }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -c
+            - |
+              if [ "$VST_INSTALL_ADDITIONAL_PACKAGES" = "true" ]; then
+                /home/vst/vst_release/tools/user_additional_install.sh
+              fi
+              exec /home/vst/vst_release/launch_vst
+          ports:
+            - containerPort: {{ .Values.storageMs.httpPort }}
+              name: http
+          env:
+            - name: VST_INSTALL_ADDITIONAL_PACKAGES
+              value: {{ .Values.storageMs.installAdditionalPackages | quote }}
+            - name: CONTAINER_NAME
+              value: "storage-ms"
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: {{ .Values.global.nvidiaVisibleDevices | quote }}
+            - name: ADAPTOR
+              value: "storage"
+            - name: NEED_RECORDING
+              value: "false"
+            - name: NEED_RTSPSERVER
+              value: "false"
+            - name: NEED_STORAGE
+              value: "true"
+            - name: NEED_STREAM_MONITORING
+              value: "false"
+            - name: HTTP_PORT
+              value: {{ .Values.storageMs.httpPort | quote }}
+          resources:
+            {{- toYaml .Values.storageMs.resources | nindent 12 }}
+          volumeMounts:
+            - name: vst-configs
+              mountPath: /home/vst/vst_release/configs
+            - name: vst-data
+              mountPath: /home/vst/vst_release/vst_data
+            - name: vst-video
+              mountPath: /home/vst/vst_release/vst_video
+            - name: shared-media
+              mountPath: /home/vst/vst_release/streamer_videos
+      volumes:
+        - name: vst-configs
+          configMap:
+            name: {{ $fullname }}-vst-configs
+        - name: vst-data
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-vst-data
+        - name: vst-video
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-vst-video
+        - name: shared-media
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-vss-shared-media
