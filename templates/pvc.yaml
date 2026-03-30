@@ -14,6 +14,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: {{ $fullname }}-vss-shared-media
   namespace: {{ .Release.Namespace }}
+  annotations:
+    helm.sh/resource-policy: keep
   labels:
     {{- include "vss.labels" . | nindent 4 }}
 spec:
@@ -32,6 +34,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: {{ $fullname }}-via-ngc-model-cache
   namespace: {{ .Release.Namespace }}
+  annotations:
+    helm.sh/resource-policy: keep
   labels:
     {{- include "vss.labels" . | nindent 4 }}
 spec:
@@ -50,6 +54,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: {{ $fullname }}-via-hf-cache
   namespace: {{ .Release.Namespace }}
+  annotations:
+    helm.sh/resource-policy: keep
   labels:
     {{- include "vss.labels" . | nindent 4 }}
 spec:
