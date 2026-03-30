@@ -79,6 +79,27 @@ Usage: {{ include "vss.routeHost" (dict "root" . "prefix" "api-gateway") }}
 {{- end }}
 {{- end }}
 
+{{- define "vss.podSecurityContext" -}}
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+{{- end }}
+
+{{- define "vss.containerSecurityContext" -}}
+allowPrivilegeEscalation: false
+capabilities:
+  drop:
+    - ALL
+runAsNonRoot: true
+runAsUser: 1000
+seccompProfile:
+  type: RuntimeDefault
+{{- end }}
+
 {{/*
 nodeSelector block – targets GPU nodes by product label based on gpuType.
 

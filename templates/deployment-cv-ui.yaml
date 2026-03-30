@@ -20,8 +20,11 @@ spec:
     spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
       {{- include "vss.nodeSelector" . | nindent 6 }}
+      {{- include "vss.podSecurityContext" . | nindent 6 }}
       initContainers:
         - name: wait-for-cv-detector
+          securityContext:
+            {{- include "vss.containerSecurityContext" . | nindent 12 }}
           image: curlimages/curl:latest
           command:
             - sh
@@ -33,6 +36,8 @@ spec:
           imagePullPolicy: IfNotPresent
           stdin: true
           tty: true
+          securityContext:
+            {{- include "vss.containerSecurityContext" . | nindent 12 }}
           ports:
             - containerPort: {{ .Values.cvUi.port }}
               name: gradio

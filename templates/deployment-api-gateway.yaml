@@ -20,12 +20,7 @@ spec:
     spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
       {{- include "vss.nodeSelector" . | nindent 6 }}
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 101
-        fsGroup: 101
-        seccompProfile:
-          type: RuntimeDefault
+      {{- include "vss.podSecurityContext" . | nindent 6 }}
       containers:
         - name: api-gateway
           image: {{ .Values.apiGateway.image }}

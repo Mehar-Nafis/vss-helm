@@ -20,11 +20,7 @@ spec:
     spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
       {{- include "vss.nodeSelector" . | nindent 6 }}
-      {{- if .Values.global.openshift }}
-      securityContext:
-        runAsUser: 0
-        runAsGroup: 0
-      {{- end }}
+      {{- include "vss.podSecurityContext" . | nindent 6 }}
       initContainers:
         # Wait for Redis before starting
         - name: wait-for-redis
@@ -44,6 +40,8 @@ spec:
         - name: alert-bridge
           image: {{ .Values.alertBridge.image }}
           imagePullPolicy: IfNotPresent
+          securityContext:
+            {{- include "vss.containerSecurityContext" . | nindent 12 }}
           ports:
             - containerPort: {{ .Values.alertBridge.fastapiPort }}
               name: fastapi

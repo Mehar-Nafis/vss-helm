@@ -20,8 +20,11 @@ spec:
     spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
       {{- include "vss.nodeSelector" . | nindent 6 }}
+      {{- include "vss.podSecurityContext" . | nindent 6 }}
       containers:
         - name: redis
+          securityContext:
+            {{- include "vss.containerSecurityContext" . | nindent 12 }}
           image: {{ .Values.redis.image }}
           imagePullPolicy: IfNotPresent
           ports:

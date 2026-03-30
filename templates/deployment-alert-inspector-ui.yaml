@@ -20,7 +20,11 @@ spec:
     spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
       {{- include "vss.nodeSelector" . | nindent 6 }}
+      {{- include "vss.podSecurityContext" . | nindent 6 }}
       initContainers:
+        - name: wait-for-alert-bridge
+          securityContext:
+            {{- include "vss.containerSecurityContext" . | nindent 12 }}
         - name: wait-for-alert-bridge
           image: curlimages/curl:latest
           command:
@@ -33,6 +37,8 @@ spec:
           imagePullPolicy: IfNotPresent
           stdin: true
           tty: true
+          securityContext:
+            {{- include "vss.containerSecurityContext" . | nindent 12 }}
           ports:
             - containerPort: {{ .Values.alertInspectorUi.gradioPort }}
               name: gradio

@@ -20,13 +20,12 @@ spec:
     spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
       {{- include "vss.nodeSelector" . | nindent 6 }}
-      hostIPC: {{ .Values.viaServer.hostIPC }}
-      {{- if .Values.global.openshift }}
-      securityContext:
-        runAsUser: 0
-      {{- end }}
+      hostIPC: false
+      {{- include "vss.podSecurityContext" . | nindent 6 }}
       containers:
         - name: via-server
+          securityContext:
+            {{- include "vss.containerSecurityContext" . | nindent 12 }}
           image: {{ .Values.viaServer.image }}
           imagePullPolicy: IfNotPresent
           ports:
