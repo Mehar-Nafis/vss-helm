@@ -20,6 +20,10 @@ spec:
     spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
       {{- include "vss.nodeSelector" . | nindent 6 }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: api-gateway
           image: {{ .Values.apiGateway.image }}
@@ -29,10 +33,18 @@ spec:
               name: http
           resources:
             {{- toYaml .Values.apiGateway.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
           volumeMounts:
             - name: nginx-config
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
           livenessProbe:
             httpGet:
               path: /health
@@ -51,3 +63,5 @@ spec:
         - name: nginx-config
           configMap:
             name: {{ $fullname }}-nginx-config
+        - name: nginx-cache
+          emptyDir: {}
