@@ -23,10 +23,9 @@ spec:
       {{- include "vss.podSecurityContext" . | nindent 6 }}
       initContainers:
         - name: wait-for-alert-bridge
-          securityContext:
-            {{- include "vss.containerSecurityContext" . | nindent 12 }}
-        - name: wait-for-alert-bridge
           image: curlimages/curl:latest
+          securityContext:
+            {{ include "vss.containerSecurityContext" . | nindent 12 }}
           command:
             - sh
             - -c

@@ -25,6 +25,8 @@ spec:
         # Wait for Redis before starting
         - name: wait-for-redis
           image: redis:alpine
+          securityContext:
+            {{ include "vss.containerSecurityContext" . | nindent 12 }}
           command:
             - sh
             - -c
@@ -32,6 +34,8 @@ spec:
         # Wait for via-server before starting
         - name: wait-for-via-server
           image: curlimages/curl:latest
+          securityContext:
+            {{ include "vss.containerSecurityContext" . | nindent 12 }}
           command:
             - sh
             - -c

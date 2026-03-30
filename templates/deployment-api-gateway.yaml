@@ -31,11 +31,7 @@ spec:
           resources:
             {{- toYaml .Values.apiGateway.resources | nindent 12 }}
           securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            runAsNonRoot: true
+            {{ include "vss.containerSecurityContext" . | nindent 12 }}
           volumeMounts:
             - name: nginx-config
               mountPath: /etc/nginx/nginx.conf
