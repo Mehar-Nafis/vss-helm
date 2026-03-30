@@ -26,7 +26,7 @@ spec:
           image: {{ .Values.apiGateway.image }}
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - containerPort: {{ .Values.apiGateway.port }}
               name: http
           resources:
             {{- toYaml .Values.apiGateway.resources | nindent 12 }}
@@ -41,14 +41,14 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: {{ .Values.apiGateway.port }}
             initialDelaySeconds: 10
             periodSeconds: 15
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: {{ .Values.apiGateway.port }}
             initialDelaySeconds: 10
             periodSeconds: 15
             timeoutSeconds: 5

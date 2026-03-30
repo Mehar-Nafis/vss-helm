@@ -38,7 +38,7 @@ nodeSelector:
   enabled: true
   # forcedNode lets you pin every vss pod to a single host when using local-fs PVs.
   # Set to "" to use gpuType-based pick (wn1/wn2 for l40s, c845 for rtx).
-  forcedNode: "wn1.apjcaipod.dcloud.cisco.com"
+  forcedNode: ""
 
 # -----------------------------------------------------------------------------
 # Service Account – shared by all GPU / privileged pods

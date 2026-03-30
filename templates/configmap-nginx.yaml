@@ -11,16 +11,18 @@ metadata:
     {{- include "vss.labels" . | nindent 4 }}
 data:
   nginx.conf: |
+    pid /var/cache/nginx/nginx.pid;
+
     events {
         worker_connections 1024;
     }
 
     http {
-        error_log /var/log/nginx/error.log debug;
+        error_log /dev/stderr warn;
         log_format custom '$remote_addr - $remote_user [$time_local] '
                           '"$request" $status $body_bytes_sent '
                           '"$http_referer" "$http_user_agent"';
-        access_log /var/log/nginx/access.log custom;
+        access_log /dev/stdout custom;
 
         upstream vss_server_backend {
             server {{ $viaServerSvc }}:{{ .Values.viaServer.backendPort }};
@@ -39,7 +41,7 @@ data:
         }
 
         server {
-            listen 80;
+            listen {{ .Values.apiGateway.port }};
             server_name localhost;
 
             location /api/vss/ {
