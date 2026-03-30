@@ -111,12 +111,35 @@ ensures all pods sharing a PVC are automatically co-located on the same node.
 Usage: {{- include "vss.nodeSelector" . | nindent 6 }}
 */}}
 {{/*
-Anti-affinity for secondary pods (redis, nim-llm).
-Pushes them to whichever L40S node the primary workload did NOT land on,
-so the 5 primary PVCs consume one node's PVs and the 2 secondary PVCs
-consume the other node's PVs.
-Disabled when forcedNode is set (all pods pinned to one node anyway).
+Mutual anti-affinity to split primary and secondary pods across two L40S nodes.
+
+Primary pods (via-server, storage-ms, etc.) consume 5 PVs on one node.
+Secondary pods (redis, nim-llm) consume 2 PVs on the other node.
+
+Mutual = works regardless of which group the scheduler processes first:
+  - If a primary pod lands on node A first, secondary pods are pushed to node B.
+  - If a secondary pod lands on node A first, primary pods are pushed to node B,
+    and their shared PVCs bind to node B.
+
+Disabled when forcedNode is set (single-node override, no split needed).
 */}}
+
+{{- define "vss.primaryAffinity" -}}
+{{- if and .Values.nodeSelector.enabled (not .Values.nodeSelector.forcedNode) }}
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/component
+              operator: In
+              values:
+                - redis
+                - nim-llm
+        topologyKey: kubernetes.io/hostname
+{{- end }}
+{{- end }}
+
 {{- define "vss.secondaryAffinity" -}}
 {{- if and .Values.nodeSelector.enabled (not .Values.nodeSelector.forcedNode) }}
 affinity:
