@@ -24,6 +24,20 @@ spec:
       {{- include "vss.nodeSelector" . | nindent 6 }}
       {{- include "vss.primaryAffinity" . | nindent 6 }}
       {{- include "vss.anyuidPodSecurityContext" . | nindent 6 }}
+      initContainers:
+        - name: install-packages
+          image: {{ .Values.storageMs.image }}
+          securityContext:
+            {{- include "vss.anyuidContainerSecurityContext" . | nindent 12 }}
+          workingDir: /home/vst/vst_release
+          command:
+            - /bin/sh
+            - -c
+            - |
+              if [ -f ./tools/user_additional_install.sh ]; then
+                chmod +x ./tools/user_additional_install.sh
+                ./tools/user_additional_install.sh
+              fi
       containers:
         - name: storage-ms
           securityContext:
