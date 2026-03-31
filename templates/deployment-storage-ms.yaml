@@ -24,20 +24,6 @@ spec:
       {{- include "vss.nodeSelector" . | nindent 6 }}
       {{- include "vss.primaryAffinity" . | nindent 6 }}
       {{- include "vss.anyuidPodSecurityContext" . | nindent 6 }}
-      initContainers:
-        - name: install-packages
-          image: {{ .Values.storageMs.image }}
-          securityContext:
-            {{- include "vss.anyuidContainerSecurityContext" . | nindent 12 }}
-          workingDir: /home/vst/vst_release
-          command:
-            - /bin/sh
-            - -c
-            - |
-              if [ -f ./tools/user_additional_install.sh ]; then
-                chmod +x ./tools/user_additional_install.sh
-                ./tools/user_additional_install.sh
-              fi
       containers:
         - name: storage-ms
           securityContext:
@@ -53,6 +39,8 @@ spec:
             - containerPort: {{ .Values.storageMs.httpPort }}
               name: http
           env:
+            - name: LD_LIBRARY_PATH
+              value: "/home/vst/vst_release/prebuilts/x86_64/deepstream:/home/vst/vst_release/prebuilts/x86_64/gst-plugins:/home/vst/vst_release/prebuilts/x86_64:/home/vst/vst_release/prebuilts/x86_64/aws:/usr/local/cuda/lib64"
             - name: CONTAINER_NAME
               value: "storage-ms"
             - name: NVIDIA_VISIBLE_DEVICES
