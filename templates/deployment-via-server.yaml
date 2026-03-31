@@ -23,7 +23,7 @@ spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
       {{- include "vss.nodeSelector" . | nindent 6 }}
       {{- include "vss.primaryAffinity" . | nindent 6 }}
-      hostIPC: true
+      hostIPC: {{ .Values.viaServer.hostIPC }}
       {{ include "vss.podSecurityContext" . | nindent 6 }}
       containers:
         - name: via-server

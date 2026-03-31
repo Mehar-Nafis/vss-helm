@@ -71,8 +71,9 @@ viaServer:
   vlmSystemPrompt: "You are a helpful assistant. Answer the user's question. "
   vssLogLevel: ""
   vssExtraArgs: ""
-  # Host IPC required by vLLM / NCCL
-  hostIPC: true
+  # Host IPC required by vLLM / NCCL—disabled for anyuid SCC compatibility
+  # To enable: bind service account to privileged SCC
+  hostIPC: false
   shmSize: 16Gi
   resources:
     limits:
