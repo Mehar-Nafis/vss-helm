@@ -81,7 +81,7 @@ Usage: {{ include "vss.routeHost" (dict "root" . "prefix" "api-gateway") }}
 
 {{- define "vss.podSecurityContext" }}
 securityContext:
-  runAsNonRoot: true
+  # runAsNonRoot removed—vendor images (via-server, storage-ms) run as root
   # runAsUser/runAsGroup/fsGroup removed for OpenShift SCC range compatibility
   # seccompProfile removed—anyuid SCC forbids explicit seccomp settings
 {{- end }}
