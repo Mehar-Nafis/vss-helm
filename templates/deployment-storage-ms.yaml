@@ -31,12 +31,8 @@ spec:
           image: {{ .Values.storageMs.image }}
           imagePullPolicy: IfNotPresent
           command:
-            - /bin/bash
-            - -c
-            - |
-              cp /home/vst/vst_release/launch_vst /tmp/launch_vst
-              chmod +x /tmp/launch_vst
-              exec /tmp/launch_vst
+            - /bin/sh
+            - /home/vst/vst_release/launch_vst
           ports:
             - containerPort: {{ .Values.storageMs.httpPort }}
               name: http

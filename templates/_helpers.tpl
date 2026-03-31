@@ -103,14 +103,15 @@ Relaxed pod security context for vendor images (e.g. storage-ms, via-server)
 that embed files owned by a specific UID and cannot run as an arbitrary UID.
 Requires the service account to be bound to 'anyuid' SCC:
   oc adm policy add-scc-to-user anyuid -z vss-sa -n <namespace>
-Note: fsGroup intentionally omitted – setting fsGroup: 0 causes Kubernetes to
-chown all local-pv files to GID 0, conflicting with OpenShift's auto-assigned
-GID (e.g. 1001140000). Let the anyuid SCC supply the supplemental group.
+Note: runAsUser/runAsGroup intentionally omitted – let the image's Dockerfile USER
+directive or OpenShift's anyuid SCC assign the appropriate UID.
+Note: fsGroup intentionally omitted – setting fsGroup causes Kubernetes to chown
+all local-pv files, conflicting with OpenShift's auto-assigned GID. Let the SCC
+supply the supplemental group.
 Note: seccompProfile omitted because anyuid SCC does not allow explicit seccomp settings.
 */}}
 {{- define "vss.anyuidPodSecurityContext" }}
-securityContext:
-  runAsUser: 0
+securityContext: {}
 {{- end }}
 
 {{- define "vss.anyuidContainerSecurityContext" }}
@@ -118,7 +119,6 @@ allowPrivilegeEscalation: false
 capabilities:
   drop:
     - ALL
-runAsUser: 0
 {{- end }}
 
 {{/*
