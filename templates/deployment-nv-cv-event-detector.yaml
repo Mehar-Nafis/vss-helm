@@ -28,20 +28,7 @@ spec:
       containers:
         - name: nv-cv-event-detector
           image: {{ .Values.cvEventDetector.image }}
-          securityContext:
-            runAsUser: 0
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
           imagePullPolicy: IfNotPresent
-          command:
-            - /bin/bash
-            - -c
-            - |
-              cp /opt/nvidia/nv-cv-event-detector/start_nv_cv_event_detector.sh /tmp/start_detector.sh
-              chmod +x /tmp/start_detector.sh
-              exec /tmp/start_detector.sh
           ports:
             - containerPort: {{ .Values.cvEventDetector.apiPort }}
               name: api
