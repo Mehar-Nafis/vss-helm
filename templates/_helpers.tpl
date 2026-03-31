@@ -91,7 +91,7 @@ allowPrivilegeEscalation: false
 capabilities:
   drop:
     - ALL
-runAsNonRoot: true
+# runAsNonRoot removed—vendor images (redis, nginx, etc.) run as root
 # runAsUser removed to avoid SCC UID range mismatch (OpenShift assigned UID)
 # seccompProfile removed—anyuid SCC forbids explicit seccomp settings
 {{- end }}
