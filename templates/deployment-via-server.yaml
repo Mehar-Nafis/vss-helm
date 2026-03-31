@@ -81,6 +81,8 @@ spec:
                 secretKeyRef:
                   name: {{ $fullname }}-credentials
                   key: HF_TOKEN
+            - name: NGC_MODEL_CACHE
+              value: "/tmp/ngc_cache"
           resources:
             {{- toYaml .Values.viaServer.resources | nindent 12 }}
           volumeMounts:
