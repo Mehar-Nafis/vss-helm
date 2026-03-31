@@ -33,7 +33,10 @@ spec:
           command:
             - /bin/bash
             - -c
-            - exec /home/vst/vst_release/launch_vst
+            - |
+              cp /home/vst/vst_release/launch_vst /tmp/launch_vst
+              chmod +x /tmp/launch_vst
+              exec /tmp/launch_vst
           ports:
             - containerPort: {{ .Values.storageMs.httpPort }}
               name: http
