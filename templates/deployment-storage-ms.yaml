@@ -24,22 +24,6 @@ spec:
       {{- include "vss.nodeSelector" . | nindent 6 }}
       {{- include "vss.primaryAffinity" . | nindent 6 }}
       {{- include "vss.anyuidPodSecurityContext" . | nindent 6 }}
-      initContainers:
-        - name: fix-permissions
-          image: {{ .Values.storageMs.image }}
-          securityContext:
-            runAsUser: 0
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-          command:
-            - /bin/bash
-            - -c
-            - |
-              chmod +x /home/vst/vst_release/launch_vst
-              chmod +x /home/vst/vst_release/tools/user_additional_install.sh
-              chmod -R +x /home/vst/vst_release/tools/
       containers:
         - name: storage-ms
           securityContext:
