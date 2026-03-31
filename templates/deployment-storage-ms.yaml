@@ -24,15 +24,6 @@ spec:
       {{- include "vss.nodeSelector" . | nindent 6 }}
       {{- include "vss.primaryAffinity" . | nindent 6 }}
       {{- include "vss.anyuidPodSecurityContext" . | nindent 6 }}
-      initContainers:
-        - name: fix-perms
-          image: {{ .Values.storageMs.image }}
-          securityContext:
-            runAsUser: 0
-          command:
-            - /bin/bash
-            - -c
-            - chmod +x /home/vst/vst_release/launch_vst /home/vst/vst_release/tools/user_additional_install.sh 2>/dev/null || true
       containers:
         - name: storage-ms
           securityContext:
@@ -43,6 +34,13 @@ spec:
                 - ALL
           image: {{ .Values.storageMs.image }}
           imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -c
+            - |
+              cp /home/vst/vst_release/launch_vst /tmp/launch_vst_exec
+              chmod +x /tmp/launch_vst_exec
+              exec /tmp/launch_vst_exec
           ports:
             - containerPort: {{ .Values.storageMs.httpPort }}
               name: http

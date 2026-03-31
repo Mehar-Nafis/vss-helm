@@ -25,15 +25,6 @@ spec:
       {{- include "vss.primaryAffinity" . | nindent 6 }}
       hostIPC: false
       {{- include "vss.podSecurityContext" . | nindent 6 }}
-      initContainers:
-        - name: fix-perms
-          image: {{ .Values.cvEventDetector.image }}
-          securityContext:
-            runAsUser: 0
-          command:
-            - /bin/bash
-            - -c
-            - chmod +x /opt/nvidia/nv-cv-event-detector/start_nv_cv_event_detector.sh 2>/dev/null || true
       containers:
         - name: nv-cv-event-detector
           image: {{ .Values.cvEventDetector.image }}
@@ -44,6 +35,13 @@ spec:
               drop:
                 - ALL
           imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -c
+            - |
+              cp /opt/nvidia/nv-cv-event-detector/start_nv_cv_event_detector.sh /tmp/start_detector.sh
+              chmod +x /tmp/start_detector.sh
+              exec /tmp/start_detector.sh
           ports:
             - containerPort: {{ .Values.cvEventDetector.apiPort }}
               name: api
