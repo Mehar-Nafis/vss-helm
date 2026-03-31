@@ -32,7 +32,7 @@ spec:
           command:
             - sh
             - -c
-            - until curl -sf http://{{ $fullname }}-alert-bridge:{{ .Values.alertBridge.fastapiPort }}/api/v1/health; do echo "waiting for alert-bridge"; sleep 5; done
+            - until curl -sf http://{{ $fullname }}-alert-bridge:{{ .Values.alertBridge.fastapiPort }}/health; do echo "waiting for alert-bridge"; sleep 5; done
       containers:
         - name: alert-inspector-ui
           image: {{ .Values.alertInspectorUi.image }}

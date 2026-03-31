@@ -79,7 +79,7 @@ spec:
               command:
                 - python
                 - -c
-                - "import urllib.request; urllib.request.urlopen('http://localhost:{{ .Values.alertBridge.fastapiPort }}/api/v1/health', timeout=5)"
+                - "import urllib.request; urllib.request.urlopen('http://localhost:{{ .Values.alertBridge.fastapiPort }}/health', timeout=5)"
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 10
@@ -89,7 +89,7 @@ spec:
               command:
                 - python
                 - -c
-                - "import urllib.request; urllib.request.urlopen('http://localhost:{{ .Values.alertBridge.fastapiPort }}/api/v1/health', timeout=5)"
+                - "import urllib.request; urllib.request.urlopen('http://localhost:{{ .Values.alertBridge.fastapiPort }}/health', timeout=5)"
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 10
