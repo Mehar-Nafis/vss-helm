@@ -52,8 +52,8 @@ spec:
                 - python3
                 - -c
                 - "import requests; requests.get('http://localhost:{{ .Values.nimLlm.containerPort }}/v1/health/ready')"
-            initialDelaySeconds: 600
-            periodSeconds: 10
+            initialDelaySeconds: 900
+            periodSeconds: 30
             timeoutSeconds: 20
             failureThreshold: 100
           readinessProbe:
@@ -62,8 +62,8 @@ spec:
                 - python3
                 - -c
                 - "import requests; requests.get('http://localhost:{{ .Values.nimLlm.containerPort }}/v1/health/ready')"
-            initialDelaySeconds: 600
-            periodSeconds: 10
+            initialDelaySeconds: 900
+            periodSeconds: 30
             timeoutSeconds: 20
             failureThreshold: 100
       volumes:
