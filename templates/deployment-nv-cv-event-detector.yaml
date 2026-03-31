@@ -35,11 +35,6 @@ spec:
               drop:
                 - ALL
           imagePullPolicy: IfNotPresent
-          workingDir: /opt/nvidia/nv-cv-event-detector
-          command:
-            - /bin/sh
-            - -c
-            - ./start_nv_cv_event_detector.sh
           ports:
             - containerPort: {{ .Values.cvEventDetector.apiPort }}
               name: api

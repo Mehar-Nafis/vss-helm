@@ -34,11 +34,6 @@ spec:
                 - ALL
           image: {{ .Values.storageMs.image }}
           imagePullPolicy: IfNotPresent
-          workingDir: /home/vst/vst_release
-          command:
-            - /bin/sh
-            - -c
-            - ./launch_vst
           ports:
             - containerPort: {{ .Values.storageMs.httpPort }}
               name: http
