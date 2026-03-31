@@ -31,9 +31,11 @@ spec:
           securityContext:
             {{- include "vss.containerSecurityContext" . | nindent 12 }}
           imagePullPolicy: IfNotPresent
+          workingDir: /opt/nvidia/nv-cv-event-detector
           command:
             - /bin/sh
-            - /opt/nvidia/nv-cv-event-detector/start_nv_cv_event_detector.sh
+            - -c
+            - ./start_nv_cv_event_detector.sh
           ports:
             - containerPort: {{ .Values.cvEventDetector.apiPort }}
               name: api

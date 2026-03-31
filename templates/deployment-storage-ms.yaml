@@ -30,9 +30,11 @@ spec:
             {{- include "vss.anyuidContainerSecurityContext" . | nindent 12 }}
           image: {{ .Values.storageMs.image }}
           imagePullPolicy: IfNotPresent
+          workingDir: /home/vst/vst_release
           command:
             - /bin/sh
-            - /home/vst/vst_release/launch_vst
+            - -c
+            - ./launch_vst
           ports:
             - containerPort: {{ .Values.storageMs.httpPort }}
               name: http
