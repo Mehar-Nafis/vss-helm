@@ -103,13 +103,12 @@ Relaxed pod security context for vendor images (e.g. storage-ms, via-server)
 that embed files owned by a specific UID and cannot run as an arbitrary UID.
 Requires the service account to be bound to 'anyuid' SCC:
   oc adm policy add-scc-to-user anyuid -z vss-sa -n <namespace>
+Note: seccompProfile omitted because anyuid SCC does not allow explicit seccomp settings.
 */}}
 {{- define "vss.anyuidPodSecurityContext" }}
 securityContext:
   runAsUser: 0
   fsGroup: 0
-  seccompProfile:
-    type: RuntimeDefault
 {{- end }}
 
 {{- define "vss.anyuidContainerSecurityContext" }}
@@ -118,8 +117,6 @@ capabilities:
   drop:
     - ALL
 runAsUser: 0
-seccompProfile:
-  type: RuntimeDefault
 {{- end }}
 
 {{/*

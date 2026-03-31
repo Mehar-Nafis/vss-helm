@@ -29,6 +29,10 @@ spec:
           image: {{ .Values.storageMs.image }}
           securityContext:
             runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           command:
             - /bin/bash
             - -c
