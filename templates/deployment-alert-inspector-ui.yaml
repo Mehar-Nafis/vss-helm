@@ -32,7 +32,7 @@ spec:
           command:
             - sh
             - -c
-            - until curl -sf http://{{ $fullname }}-alert-bridge:{{ .Values.alertBridge.healthPort }}/health; do echo "waiting for alert-bridge"; sleep 5; done
+            - until curl -sf http://{{ $fullname }}-alert-bridge:{{ .Values.alertBridge.fastapiPort }}/api/v1/health; do echo "waiting for alert-bridge"; sleep 5; done
       containers:
         - name: alert-inspector-ui
           image: {{ .Values.alertInspectorUi.image }}
@@ -54,7 +54,7 @@ spec:
             - name: GRADIO_SERVER
               value: "0.0.0.0"
             - name: ALERT_BRIDGE_BASE_URL
-              value: "ws://{{ $fullname }}-alert-bridge:{{ .Values.alertBridge.healthPort }}"
+              value: "ws://{{ $fullname }}-alert-bridge:{{ .Values.alertBridge.fastapiPort }}"
           resources:
             {{- toYaml .Values.alertInspectorUi.resources | nindent 12 }}
           volumeMounts:
