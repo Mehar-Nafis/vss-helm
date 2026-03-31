@@ -25,6 +25,15 @@ spec:
       {{- include "vss.primaryAffinity" . | nindent 6 }}
       hostIPC: false
       {{ include "vss.podSecurityContext" . | nindent 6 }}
+      initContainers:
+        - name: setup-matplotlib-config
+          image: {{ .Values.viaServer.image }}
+          securityContext:
+            runAsUser: 0
+          command:
+            - /bin/bash
+            - -c
+            - mkdir -p /.config/matplotlib && chmod 777 /.config/matplotlib
       containers:
         - name: via-server
           securityContext:
