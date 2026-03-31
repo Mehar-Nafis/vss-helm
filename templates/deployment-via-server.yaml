@@ -41,7 +41,11 @@ spec:
       containers:
         - name: via-server
           securityContext:
-            {{ include "vss.containerSecurityContext" . | nindent 12 }}
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           image: {{ .Values.viaServer.image }}
           imagePullPolicy: IfNotPresent
           ports:

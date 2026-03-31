@@ -29,7 +29,11 @@ spec:
         - name: nv-cv-event-detector
           image: {{ .Values.cvEventDetector.image }}
           securityContext:
-            {{- include "vss.containerSecurityContext" . | nindent 12 }}
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           imagePullPolicy: IfNotPresent
           workingDir: /opt/nvidia/nv-cv-event-detector
           command:

@@ -27,7 +27,11 @@ spec:
       containers:
         - name: storage-ms
           securityContext:
-            {{- include "vss.anyuidContainerSecurityContext" . | nindent 12 }}
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           image: {{ .Values.storageMs.image }}
           imagePullPolicy: IfNotPresent
           workingDir: /home/vst/vst_release
