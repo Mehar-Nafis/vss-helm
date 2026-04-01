@@ -28,13 +28,14 @@ spec:
           image: {{ .Values.cvEventDetector.image }}
           imagePullPolicy: IfNotPresent
           # Replicate Docker Compose ulimits: memlock=-1, nofile=65535, stack=64MB
-          # Install x264enc (gstreamer1.0-plugins-ugly) needed for clip encoding.
-          # In OpenShift, apt egress must be permitted or use a pre-baked image.
+          # Create /dev/v4l2-nvenc so gstnvdscacheevent.py selects nvv4l2h264enc
+          # over x264enc. x264enc fails when forked from a running DeepStream
+          # pipeline; nvv4l2h264enc handles the forked GPU state correctly.
           command: ["/bin/bash", "-c"]
           args:
             - |
-              apt-get update -qq && apt-get install -y -qq gstreamer1.0-plugins-ugly && \
-              ulimit -l unlimited -n 65535 -s 65536 && \
+              touch /dev/v4l2-nvenc
+              ulimit -l unlimited -n 65535 -s 65536
               exec /opt/nvidia/nv-cv-event-detector/start_nv_cv_event_detector.sh
           ports:
             - containerPort: {{ .Values.cvEventDetector.apiPort }}
