@@ -52,9 +52,11 @@ spec:
           persistentVolumeClaim:
             claimName: {{ $fullname }}-vss-shared-media
         - name: app-storage
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-mfg-qa-storage
         - name: app-videos
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-mfg-qa-videos
 ---
 apiVersion: v1
 kind: Service

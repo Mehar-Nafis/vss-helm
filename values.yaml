@@ -299,6 +299,18 @@ persistence:
     accessMode: ReadWriteOnce
     storageClass: ""
 
+  # Manufacturing QA app storage (results, DB)
+  mfgQaStorage:
+    size: 20Gi
+    accessMode: ReadWriteOnce
+    storageClass: ""
+
+  # Manufacturing QA sample videos
+  mfgQaVideos:
+    size: 100Gi
+    accessMode: ReadWriteOnce
+    storageClass: ""
+
 # -----------------------------------------------------------------------------
 # OpenShift Routes
 # Set host to your cluster's apps domain, e.g. apps.cluster.example.com
