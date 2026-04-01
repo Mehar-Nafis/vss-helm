@@ -207,7 +207,7 @@ cvUi:
 # Port 8000 internal → 8999 on the K8s Service (matching compose mapping)
 # -----------------------------------------------------------------------------
 nimLlm:
-  image: nvcr.io/nim/nvidia/llama-3.1-8b-instruct
+  image: nvcr.io/nim/nvidia/llama-3.3-nemotron-super-49b-v1.5:1.14.0
   # Directory inside container for model cache (volumeMount mountPath)
   modelDirectory: /models
   # Internal container port
@@ -221,27 +221,30 @@ nimLlm:
   shmSize: 16Gi
   resources:
     limits:
-      nvidia.com/gpu: "1"
+      nvidia.com/gpu: "2"
       memory: "128Gi"
     requests:
       memory: "64Gi"
       cpu: "8"
 
-# -----------------------------------------------------------------------------
-# manufacturing-qa ConfigMap
-# Values here populate the same variables as manufacturing_qa/.env
-# Endpoint URLs are auto-derived from service names; override only if needed.
-# -----------------------------------------------------------------------------
+
 manufacturingQa:
+  image: "kishorek123/manufacturing-qa:latest"  # required: set to your built image, e.g. image-registry.openshift-image-registry.svc:5000/vss/manufacturing-qa:latest
   # Override auto-derived URLs only when services live outside this release
   cvDetectorApiUrlOverride: ""   # default: http://<release>-nv-cv-event-detector:23491
   llmApiUrlOverride: ""          # default: http://<release>-nim-llm:8999/v1/chat/completions
   vssEngineUrlOverride: ""       # default: http://<release>-via-server:<backendPort>
   mediaBaseDir: "/tmp"
-  appStorageBaseDir: "./storage"
-  sampleVideosDir: "./videos"
+  appStorageBaseDir: "/app/storage"
+  sampleVideosDir: "/app/videos"
   appPort: "7865"
   debug: "True"
+  resources:
+    limits:
+      memory: "4Gi"
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
 
 # -----------------------------------------------------------------------------
 # Persistent Volume Claims
