@@ -207,7 +207,7 @@ cvUi:
 # Port 8000 internal → 8999 on the K8s Service (matching compose mapping)
 # -----------------------------------------------------------------------------
 nimLlm:
-  image: nvcr.io/nim/nvidia/llama-3.2-3b-instruct
+  image: nvcr.io/nim/nvidia/llama-3.1-8b-instruct
   # Directory inside container for model cache (volumeMount mountPath)
   modelDirectory: /models
   # Internal container port
