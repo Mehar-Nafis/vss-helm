@@ -22,7 +22,7 @@ spec:
     spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
       imagePullSecrets:
-        - name: {{ include "vss.fullname" . }}-ngc-registry
+        - name: ngc-secret
       {{- include "vss.nodeSelector" . | nindent 6 }}
       {{- include "vss.secondaryAffinity" . | nindent 6 }}
       {{- include "vss.podSecurityContext" . | nindent 6 }}
