@@ -27,6 +27,9 @@ spec:
         - name: nv-cv-event-detector
           image: {{ .Values.cvEventDetector.image }}
           imagePullPolicy: IfNotPresent
+          command: ["/bin/bash", "-c"]
+          args:
+            - "apt-get update -qq && apt-get install -y --no-install-recommends gstreamer1.0-tools && rm -rf /var/lib/apt/lists/* && exec /opt/nvidia/nv-cv-event-detector/start_nv_cv_event_detector.sh"
           ports:
             - containerPort: {{ .Values.cvEventDetector.apiPort }}
               name: api
