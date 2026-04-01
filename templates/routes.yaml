@@ -106,4 +106,32 @@ spec:
     termination: {{ $tls.termination }}
     insecureEdgeTerminationPolicy: {{ $tls.insecureEdgeTerminationPolicy }}
   {{- end }}
+---
+# ---------------------------------------------------------------------------
+# Route: manufacturing-qa  (Manufacturing QA Gradio UI – port 7865)
+# ---------------------------------------------------------------------------
+{{- if .Values.manufacturingQa.image }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $fullname }}-manufacturing-qa
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vss.labels" . | nindent 4 }}
+    app.kubernetes.io/component: manufacturing-qa
+spec:
+  {{- with include "vss.routeHost" (dict "root" . "prefix" "manufacturing-qa") }}
+  host: {{ . }}
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ $fullname }}-manufacturing-qa
+  port:
+    targetPort: gradio
+  {{- if $tls.enabled }}
+  tls:
+    termination: {{ $tls.termination }}
+    insecureEdgeTerminationPolicy: {{ $tls.insecureEdgeTerminationPolicy }}
+  {{- end }}
+{{- end }}
 {{- end }}
