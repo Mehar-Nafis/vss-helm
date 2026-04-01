@@ -171,8 +171,10 @@ cvEventDetector:
   clipCachePreEvTime: "5"
   clipCachePostEvTime: "20"
   enableFileStreamingMode: "false"
-  # hostIPC required by DeepStream / GStreamer
-  hostIPC: true
+  # hostIPC: true required by DeepStream/GStreamer in Docker Compose but
+  # forbidden by OpenShift anyuid SCC. Clip creation is handled via
+  # touch /dev/v4l2-nvenc (nvv4l2h264enc encoder) which does not need hostIPC.
+  hostIPC: false
   shmSize: 16Gi
   resources:
     limits:
