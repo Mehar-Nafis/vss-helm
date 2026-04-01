@@ -1,7 +1,7 @@
 {{- $fullname := include "vss.fullname" . }}
 {{- $component := "nim-llm" }}
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ $fullname }}-{{ $component }}
   namespace: {{ .Release.Namespace }}
@@ -9,9 +9,7 @@ metadata:
     {{- include "vss.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ $component }}
 spec:
-  serviceName: {{ $fullname }}-{{ $component }}
   replicas: 1
-  podManagementPolicy: Parallel
   selector:
     matchLabels:
       {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 6 }}
@@ -73,15 +71,6 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: {{ .Values.nimLlm.shmSize }}
-  volumeClaimTemplates:
-    - metadata:
-        name: nim-model-cache
-        labels:
-          {{- include "vss.labels" . | nindent 10 }}
-      spec:
-        accessModes:
-          - {{ .Values.persistence.nimModelCache.accessMode }}
-        resources:
-          requests:
-            storage: {{ .Values.persistence.nimModelCache.size }}
-        {{- include "vss.storageClass" (dict "global" .Values.persistence.storageClass "local" .Values.persistence.nimModelCache.storageClass) | nindent 8 }}
+        - name: nim-model-cache
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-nim-model-cache
