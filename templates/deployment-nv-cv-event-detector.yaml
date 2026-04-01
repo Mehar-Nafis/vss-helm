@@ -1,7 +1,7 @@
 {{- $fullname := include "vss.fullname" . }}
 {{- $component := "nv-cv-event-detector" }}
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ $fullname }}-{{ $component }}
   namespace: {{ .Release.Namespace }}
@@ -9,9 +9,7 @@ metadata:
     {{- include "vss.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ $component }}
 spec:
-  serviceName: {{ $fullname }}-{{ $component }}
   replicas: 1
-  podManagementPolicy: Parallel
   selector:
     matchLabels:
       {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 6 }}
