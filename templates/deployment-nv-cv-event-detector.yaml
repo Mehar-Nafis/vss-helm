@@ -51,8 +51,6 @@ spec:
               value: {{ .Values.global.nvidiaVisibleDevices | quote }}
             - name: LD_LIBRARY_PATH
               value: "/opt/nvidia/deepstream/deepstream/lib:/opt/tritonserver/lib/"
-            - name: GST_REGISTRY_FORK
-              value: "no"
           resources:
             {{- toYaml .Values.cvEventDetector.resources | nindent 12 }}
           volumeMounts:
