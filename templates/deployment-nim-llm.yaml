@@ -21,6 +21,8 @@ spec:
         {{- include "vss.selectorLabels" (dict "root" . "component" $component) | nindent 8 }}
     spec:
       serviceAccountName: {{ include "vss.serviceAccountName" . }}
+      imagePullSecrets:
+        - name: {{ include "vss.fullname" . }}-ngc-registry
       {{- include "vss.nodeSelector" . | nindent 6 }}
       {{- include "vss.secondaryAffinity" . | nindent 6 }}
       {{- include "vss.podSecurityContext" . | nindent 6 }}
