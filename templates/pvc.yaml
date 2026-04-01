@@ -67,3 +67,23 @@ spec:
   {{- with (.Values.persistence.viaHfCache.storageClass | default $globalSC) }}
   storageClassName: {{ . | quote }}
   {{- end }}
+---
+# nim-model-cache: NIM LLM model weights (Deployment, so PVC managed here)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fullname }}-nim-model-cache
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    {{- include "vss.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.nimModelCache.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.nimModelCache.size }}
+  {{- with (.Values.persistence.nimModelCache.storageClass | default $globalSC) }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
