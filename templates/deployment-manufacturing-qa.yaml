@@ -23,6 +23,16 @@ spec:
       {{- include "vss.nodeSelector" . | nindent 6 }}
       {{- include "vss.primaryAffinity" . | nindent 6 }}
       {{- include "vss.podSecurityContext" . | nindent 6 }}
+      initContainers:
+        - name: seed-app-data
+          image: {{ .Values.manufacturingQa.image }}
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "cp -rn /app/storage/. /mnt/storage/ 2>/dev/null || true; cp -rn /app/videos/. /mnt/videos/ 2>/dev/null || true"]
+          volumeMounts:
+            - name: app-storage
+              mountPath: /mnt/storage
+            - name: app-videos
+              mountPath: /mnt/videos
       containers:
         - name: manufacturing-qa
           image: {{ .Values.manufacturingQa.image }}
