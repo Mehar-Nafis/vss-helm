@@ -209,7 +209,7 @@ cvUi:
 # Port 8000 internal → 8999 on the K8s Service (matching compose mapping)
 # -----------------------------------------------------------------------------
 nimLlm:
-  image: nvcr.io/nim/nvidia/llama-3.3-nemotron-super-49b-v1.5:1.14.0
+  image: nvcr.io/nim/meta/llama-3.1-8b-instruct:1.2.2
   # Directory inside container for model cache (volumeMount mountPath)
   modelDirectory: /models
   # Internal container port
@@ -223,11 +223,11 @@ nimLlm:
   shmSize: 16Gi
   resources:
     limits:
-      nvidia.com/gpu: "2"
-      memory: "128Gi"
+      nvidia.com/gpu: "1"
+      memory: "32Gi"
     requests:
-      memory: "64Gi"
-      cpu: "8"
+      memory: "16Gi"
+      cpu: "4"
 
 
 manufacturingQa:
