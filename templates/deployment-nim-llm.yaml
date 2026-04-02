@@ -39,6 +39,10 @@ spec:
                 secretKeyRef:
                   name: {{ $fullname }}-credentials
                   key: NGC_API_KEY
+            - name: UCX_TLS
+              value: "tcp"
+            - name: NCCL_IB_DISABLE
+              value: "1"
           resources:
             {{- toYaml .Values.nimLlm.resources | nindent 12 }}
           volumeMounts:
