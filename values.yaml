@@ -223,9 +223,8 @@ nimLlm:
   resources:
     limits:
       nvidia.com/gpu: "1"
-      memory: "32Gi"
     requests:
-      memory: "16Gi"
+      memory: "64Gi"
       cpu: "4"
 
 
