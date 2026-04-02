@@ -78,7 +78,6 @@ viaServer:
   resources:
     limits:
       nvidia.com/gpu: "1"
-      memory: "128Gi"
     requests:
       memory: "64Gi"
       cpu: "4"
