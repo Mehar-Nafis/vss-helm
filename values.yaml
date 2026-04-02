@@ -231,7 +231,7 @@ nimLlm:
 
 
 manufacturingQa:
-  image: "kishorek123/manufacturing-qa:latest"  # required: set to your built image, e.g. image-registry.openshift-image-registry.svc:5000/vss/manufacturing-qa:latest
+  image: "kishorek123/manufacturing-qa:v1"  # required: set to your built image, e.g. image-registry.openshift-image-registry.svc:5000/vss/manufacturing-qa:latest
   # Override auto-derived URLs only when services live outside this release
   cvDetectorApiUrlOverride: ""   # default: http://<release>-nv-cv-event-detector:23491
   llmApiUrlOverride: ""          # default: http://<release>-nim-llm:8999/v1/chat/completions
