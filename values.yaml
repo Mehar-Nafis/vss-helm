@@ -255,7 +255,7 @@ manufacturingQa:
 # -----------------------------------------------------------------------------
 persistence:
   # Default storage class for all PVCs
-  storageClass: "local-fs"
+  storageClass: "lvms-vg1"
 
   # Shared /tmp between via-server, storage-ms, alert-bridge,
   # alert-inspector-ui, nv-cv-event-detector, cv-ui.
