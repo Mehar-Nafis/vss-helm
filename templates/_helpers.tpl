@@ -186,7 +186,7 @@ nodeSelector:
   node-role.kubernetes.io/worker: ""
   {{- else if eq .Values.gpuType "l40s" }}
 nodeSelector:
-  nvidia.com/gpu.product: NVIDIA-L40S
+  nvidia.com/gpu.product: NVIDIA-L40S-SHARED
   node-role.kubernetes.io/worker: ""
   {{- else if eq .Values.gpuType "rtx" }}
 nodeSelector:
