@@ -190,7 +190,7 @@ nodeSelector:
   node-role.kubernetes.io/worker: ""
   {{- else if eq .Values.gpuType "rtx" }}
 nodeSelector:
-  nvidia.com/gpu.product: NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition
+  nvidia.com/gpu.product: NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition-SHARED
   node-role.kubernetes.io/worker: ""
   {{- end }}
 {{- end }}
