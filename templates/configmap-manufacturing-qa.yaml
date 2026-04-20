@@ -30,7 +30,7 @@ data:
 
   # NIM LLM API – served by nim-llm (Nemotron 49B)
   LLM_API_URL: {{ $llmApiUrl | quote }}
-  LLM_MODEL_NAME: "nvidia/llama-3.3-nemotron-super-49b-v1.5"
+  LLM_MODEL_NAME: "meta/llama-3.1-8b-instruct"
 
   # VSS Engine – served by via-server
   VSS_ENGINE_URL: {{ $vssEngineUrl | quote }}
